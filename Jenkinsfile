@@ -4,7 +4,7 @@ pipeline {
         TF_DIR = 'terraform'
         GOOGLE_PROJECT = 'gke-project-1-500610'
     }
-    stage {
+    stages {
         stage ('checkout') {
             steps {
                 checkout scm
@@ -26,14 +26,14 @@ pipeline {
         }
         stage ('Terraform format check') {
             steps {
-                dir ("${TR_DIR}") {
+                dir ("${TF_DIR}") {
                     sh 'terraform fmt -check -recursive'
                 }
             }
         }
         stage ('Terraform validate') {
             steps {
-                dir ('${TR_DIR}') {
+                dir ("${TF_DIR}") {
                     sh ' terraform validate'
                 }
             }
