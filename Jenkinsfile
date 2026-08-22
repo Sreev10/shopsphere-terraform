@@ -1,66 +1,62 @@
 pipeline {
     agent any
-    environment {
-        TF_DIR = 'terraform'
-        GOOGLE_PROJECT = 'gke-project-1-500610'
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
     }
+
     stages {
-        stage ('checkout') {
+
+        stage('Terraform Version') {
             steps {
-                checkout scm
-            }
-        }
-        stage ('Terraform Version') {
-            steps {
-                dir ("${TF_DIR}") {
+                dir('terraform') {
                     sh 'terraform version'
                 }
             }
         }
-        stage ('Terraform init') {
+
+        stage('Terraform Init') {
             steps {
-                dir ("${TF_DIR}") {
+                dir('terraform') {
                     sh 'terraform init'
                 }
             }
         }
-        stage ('Terraform format check') {
+
+        stage('Terraform Destroy Plan') {
             steps {
-                dir ("${TF_DIR}") {
-                    sh 'terraform fmt -check -recursive'
+                dir('terraform') {
+                    sh '''
+                        rm -f tfplan-destroy
+                        terraform plan -destroy -out=tfplan-destroy
+                    '''
                 }
             }
         }
-        stage ('Terraform validate') {
+
+        stage('Destroy Infrastructure') {
             steps {
-                dir ("${TF_DIR}") {
-                    sh ' terraform validate'
-                }
-            }
-        }
-        stage ('Terraform plan') {
-            steps {
-                dir ("${TF_DIR}") {
-                    sh 'terraform plan -out=tfplan'
-                }
-            }
-        }
-        stage ('Terraform apply') {
-            steps {
-                input message: 'Terraform plan is ready. Deploy insfrastructure to GCP' ,
-                ok: 'Deploy'
-                dir ("${TF_DIR}") {
-                    sh 'terraform apply -auto-approve tfplan'
+                input message: 'Destroy ALL Terraform-managed infrastructure in GCP?', ok: 'Destroy'
+
+                dir('terraform') {
+                    sh 'terraform apply -auto-approve tfplan-destroy'
                 }
             }
         }
     }
+
     post {
         success {
-            echo 'Insfracture deployment completed successfully.'
+            echo 'Terraform infrastructure destruction completed successfully.'
         }
+
         failure {
-            echo 'Insfracture deploment failed. check the jenkins console logs.'
+            echo 'Terraform infrastructure destruction failed. Check the Jenkins console output.'
+        }
+
+        always {
+            echo 'Terraform destroy pipeline finished.'
         }
     }
 }
