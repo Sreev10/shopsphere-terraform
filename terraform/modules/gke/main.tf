@@ -77,7 +77,7 @@ resource "google_container_node_pool" "application" {
   }
   node_config {
     machine_type    = "e2-standard-2"
-    disk_type       = "pd-balanced"
+    disk_type       = "pd-standard"
     disk_size_gb    = 50
     image_type      = "COS_CONTAINERD"
     service_account = var.node_service_account
