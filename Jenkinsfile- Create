@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         TF_DIR = 'terraform'
-        GOOGLE_PROJECT = 'gke-project-1-500610'
+        GOOGLE_PROJECT = 'gke-project-ID'
     }
     stages {
         stage ('checkout') {
